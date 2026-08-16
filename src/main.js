@@ -1,36 +1,13 @@
 const toggle=document.querySelector('.hamb');
 const drawer=document.querySelector('.drawer');
-toggle?.addEventListener('click',()=>{
-const open=!drawer.classList.contains('show');
-drawer.classList.toggle('show',open);
-document.body.classList.toggle('locked',open);
-toggle.setAttribute('aria-expanded',String(open));
-toggle.setAttribute('aria-label',open?'Close menu':'Open menu');
-toggle.textContent=open?'×':'☰';
-drawer.setAttribute('aria-hidden',String(!open));
-}
-);
-drawer?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
-drawer.classList.remove('show');
-document.body.classList.remove('locked');
-toggle.setAttribute('aria-expanded','false');
-toggle.setAttribute('aria-label','Open menu');
-toggle.textContent='☰';
-drawer.setAttribute('aria-hidden','true');
-}
-));
+toggle?.addEventListener('click',()=>{const open=!drawer.classList.contains('show');drawer.classList.toggle('show',open);document.body.classList.toggle('locked',open);toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Close menu':'Open menu');toggle.textContent=open?'×':'☰';drawer.setAttribute('aria-hidden',String(!open));});
+drawer?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{if(a.getAttribute('href')==='#reserve')return;drawer.classList.remove('show');document.body.classList.remove('locked');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Open menu');toggle.textContent='☰';drawer.setAttribute('aria-hidden','true');}));
 
-const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-if(!reduced){
-const io=new IntersectionObserver(entries=>entries.forEach(e=>{
-if(e.isIntersecting){
-e.target.classList.add('in');
-io.unobserve(e.target)}
-}
-),{
-threshold:.12}
-);
-document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-}
-else document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+const modal=document.createElement('div');modal.className='bookingModal';modal.setAttribute('aria-hidden','true');modal.innerHTML=`<div class="bookingCard" role="dialog" aria-modal="true" aria-labelledby="bookingTitle"><button class="bookingClose" type="button" aria-label="Close reservation">×</button><p class="eyebrow">Reservations</p><h2 id="bookingTitle">RESERVE YOUR TABLE</h2><p class="bookingIntro">Choose your preferred date, time and party size.</p><form class="bookingForm"><label>Name<input name="name" type="text" placeholder="Your name" autocomplete="name" required></label><label>Phone<input name="phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" required></label><div class="bookingRow"><label>Date<input name="date" type="date" required></label><label>Time<select name="time" required><option value="">Select time</option><option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option><option>7:00 PM</option><option>8:00 PM</option><option>9:00 PM</option><option>10:00 PM</option></select></label></div><label>Guests<select name="guests" required><option>1 Guest</option><option>2 Guests</option><option>3 Guests</option><option>4 Guests</option><option>5 Guests</option><option>6 Guests</option><option>7+ Guests</option></select></label><label>Special request <span class="optional">(optional)</span><textarea name="request" rows="3" placeholder="Birthday, anniversary, dietary request..." maxlength="300"></textarea></label><button class="primary bookingSubmit" type="submit">Continue to WhatsApp ↗</button></form></div>`;document.body.appendChild(modal);
+const closeBooking=()=>{modal.classList.remove('show');modal.setAttribute('aria-hidden','true');document.body.classList.remove('locked');};
+const openBooking=()=>{modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.classList.add('locked');const date=modal.querySelector('input[name="date"]');const now=new Date();date.min=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);setTimeout(()=>modal.querySelector('input[name="name"]')?.focus(),150);};
+document.querySelectorAll('a[href="#reserve"]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();if(drawer?.classList.contains('show')){drawer.classList.remove('show');document.body.classList.remove('locked');toggle?.setAttribute('aria-expanded','false');toggle?.setAttribute('aria-label','Open menu');toggle.textContent='☰';drawer.setAttribute('aria-hidden','true');}openBooking();}));
+modal.querySelector('.bookingClose').addEventListener('click',closeBooking);modal.addEventListener('click',e=>{if(e.target===modal)closeBooking();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeBooking();});
+modal.querySelector('.bookingForm').addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget);const message=`Hello Ember & Spice! I'd like to reserve a table.\n\nName: ${data.get('name')}\nPhone: ${data.get('phone')}\nDate: ${data.get('date')}\nTime: ${data.get('time')}\nGuests: ${data.get('guests')}\nSpecial request: ${data.get('request')||'None'}`;window.open(`https://wa.me/919999999999?text=${encodeURIComponent(message)}`,'_blank','noopener');closeBooking();});
 
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;if(!reduced){const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));}else document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
